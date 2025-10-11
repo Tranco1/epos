@@ -71,7 +71,7 @@ app.post("/api/login", async (req, res) => {
 
 // 📝 Register new user
 app.post("/api/register", async (req, res) => {
-  const { username, email, password, dealer_id } = req.body;
+  const { username, email, password, dealer_id =1} = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Missing fields" });
@@ -80,7 +80,7 @@ app.post("/api/register", async (req, res) => {
   try {
     // Check if user already exists
     const existing = await pool.query(
-      "SELECT id FROM users WHERE username = $1 OR email = $2",
+      "SELECT id FROM users WHERE name = $1 OR email = $2",
       [username, email]
     );
 
@@ -93,7 +93,7 @@ app.post("/api/register", async (req, res) => {
 
     // Insert user
     const result = await pool.query(
-      "INSERT INTO users (name, email, dealer_id, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
+      "INSERT INTO users (name, email, dealer_id, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
       [username, email, dealer_id || null, hashed]
     );
 
