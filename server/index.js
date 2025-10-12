@@ -19,6 +19,7 @@ const pool = new Pool({
 
 // ⚙️ Secret key for JWT (store in .env in production)
 const JWT_SECRET = "mysecretkey";
+const fixed_dealer_id = 1;
 
 // 🔐 Login route
 app.post("/api/login", async (req, res) => {
@@ -27,8 +28,8 @@ app.post("/api/login", async (req, res) => {
   try {
     // Find user by username or email
     const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [username]
+      "SELECT * FROM users WHERE email = $1 and dealer_id = $2",
+      [username, fixed_dealer_id]
     );
 
     if (result.rows.length === 0) {
@@ -71,7 +72,7 @@ app.post("/api/login", async (req, res) => {
 
 // 📝 Register new user
 app.post("/api/register", async (req, res) => {
-  const { username, email, password, dealer_id =1} = req.body;
+  const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Missing fields" });
@@ -94,7 +95,7 @@ app.post("/api/register", async (req, res) => {
     // Insert user
     const result = await pool.query(
       "INSERT INTO users (name, email, dealer_id, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
-      [username, email, dealer_id || null, hashed]
+      [username, email, fixed_dealer_id || null, hashed]
     );
 
     res.json({

@@ -14,7 +14,7 @@ function Register() {
     setError("");
 
     try {
-      const res = await fetch("http://192.168.1.106:5000/api/register", {
+      const res = await fetch("http://192.168.1.107:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -54,13 +54,13 @@ function Register() {
           </div>
         )}
 
-        <label className="block mb-2 font-medium">Username</label>
+        <label className="block mb-2 font-medium">Name</label>
         <input
           type="text"
           className="border w-full p-2 rounded mb-3"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-        />
+        /><br></br> 
 
         <label className="block mb-2 font-medium">Email</label>
         <input
@@ -68,7 +68,7 @@ function Register() {
           className="border w-full p-2 rounded mb-3"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        />
+        /><br></br>
 
         <label className="block mb-2 font-medium">Password</label>
         <input
@@ -76,15 +76,7 @@ function Register() {
           className="border w-full p-2 rounded mb-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <label className="block mb-2 font-medium">Dealer ID (optional)</label>
-        <input
-          type="text"
-          className="border w-full p-2 rounded mb-4"
-          value={dealerId}
-          onChange={(e) => setDealerId(e.target.value)}
-        />
+        /><br></br>
 
         <button
           type="submit"

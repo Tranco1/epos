@@ -1,214 +1,217 @@
-// src/pages/Shop.jsx
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 function Shop() {
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [cart, setCart] = useState([]);
-  const [showCart, setShowCart] = useState(false);
-  const [customerName, setCustomerName] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // 🧠 Fetch products
   useEffect(() => {
-    fetch("http://192.168.1.106:5000/api/products")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("http://192.168.1.107:5000/api/products"); // update your backend IP/URL
+        const data = await res.json();
         setProducts(data);
-        if (data.length > 0) setSelectedCategory(data[0].category);
-      })
-      .catch((err) => console.error("Error fetching products:", err));
+        const cats = [...new Set(data.map((p) => p.category))];
+        setCategories(["All", ...cats]);
+      } catch (err) {
+        console.error("❌ Error fetching products:", err);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  const categories = [...new Set(products.map((p) => p.category))];
-  const filteredProducts = products.filter(
-    (p) => p.category === selectedCategory
-  );
-
+  // 🛒 Add to cart
   const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
-
-  const updateQuantity = (productId, delta) => {
-    setCart((prev) =>
-      prev
-        .map((item) =>
-          item.id === productId
-            ? { ...item, quantity: Math.max(item.quantity + delta, 0) }
-            : item
+    const stored = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existing = stored.find((p) => p.id === product.id);
+    const newCart = existing
+      ? stored.map((p) =>
+          p.id === product.id ? { ...p, qty: p.qty + 1 } : p
         )
-        .filter((item) => item.quantity > 0)
-    );
+      : [...stored, { ...product, qty: 1 }];
+
+    localStorage.setItem("cart", JSON.stringify(newCart));
+    alert(`${product.name} added to cart!`);
   };
 
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  const submitOrder = async () => {
-    if (!customerName) {
-      alert("Please enter your name before submitting the order.");
-      return;
-    }
-    try {
-      const res = await fetch("http://192.168.1.106:5000/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer_name: customerName, cart }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert(`✅ Order placed! Order ID: ${data.order_id}`);
-        setCart([]);
-        setShowCart(false);
-        setCustomerName("");
-      } else {
-        alert("❌ Error: " + data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error placing order.");
-    }
+  // 🚪 Logout
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
   };
+
+  // 🧩 Filter products
+  const filteredProducts =
+    activeCategory === "All"
+      ? products
+      : products.filter((p) => p.category === activeCategory);
+
+  const isActive = (path) =>
+    location.pathname === path
+      ? "text-blue-700 font-semibold underline"
+      : "text-gray-700 hover:text-blue-700";
+
+  const handleLinkClick = () => setMenuOpen(false);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">🛍️ My Shop</h1>
-        <Link
-          to="/login"
-          className="text-blue-600 hover:text-blue-800 font-medium"
-        >
-          🔐 Login
+    <div className="min-h-screen bg-gray-50">
+      {/* 🌟 NAVIGATION BAR */}
+      <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
+        {/* LEFT: Brand */}
+        <Link to="/" className="text-xl font-bold text-blue-600">
+          🛍️ My Shop
         </Link>
-      </div>
 
-      {/* Category Tabs */}
-      <div className="flex gap-2 flex-wrap justify-center mb-6">
-        {categories.map((cat) => (
+        {/* RIGHT: Cart + User Controls */}
+        <div className="flex items-center space-x-4">
+          <Link
+            to="/cart"
+            className="text-green-600 hover:text-green-800 font-medium"
+          >
+            🛒 Cart
+          </Link>
+
+          {user ? (
+            <>
+              <span className="text-gray-700 hidden sm:inline">
+                👋 {user.username}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-800 font-medium hidden sm:inline"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className={isActive("/login")}>
+              🔐 Login
+            </Link>
+          )}
+
+          {/* Hamburger icon (always visible on small screens) */}
           <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full ${
-              selectedCategory === cat
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
+            className="text-gray-700 md:hidden"
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            {cat}
+            {menuOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
-        ))}
-      </div>
+        </div>
 
-      {/* Product list */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredProducts.map((p) => (
-          <div
-            key={p.id}
-            className="border rounded-xl p-4 shadow flex flex-col justify-between hover:shadow-lg transition-shadow"
-          >
-            <div>
-              <img
-                src={p.img || "https://via.placeholder.com/150?text=No+Image"}
-                alt={p.name}
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
-              <h3 className="font-semibold text-lg">{p.name}</h3>
-              <p className="text-gray-600">${Number(p.price).toFixed(2)}</p>
-            </div>
-            <button
-              onClick={() => addToCart(p)}
-              className="mt-3 bg-green-500 text-white py-1 rounded hover:bg-green-600"
+        {/* MOBILE MENU — shows all links only when icon is clicked */}
+        {menuOpen && (
+          <div className="absolute top-full left-0 w-full bg-white shadow-lg border-t z-50 flex flex-col p-4 space-y-3">
+            <Link to="/" className={isActive("/")} onClick={handleLinkClick}>
+              🏠 Shop
+            </Link>
+            <Link
+              to="/about"
+              className={isActive("/about")}
+              onClick={handleLinkClick}
             >
-              Add to Cart
-            </button>
-          </div>
-        ))}
-      </div>
+              ℹ️ About
+            </Link>
 
-      {/* Floating Cart Link */}
-      <button
-        onClick={() => setShowCart(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700"
-      >
-        🛒 View Cart ({cart.reduce((sum, i) => sum + i.quantity, 0)})
-      </button>
-
-      {/* Cart Modal */}
-      {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg relative">
-            <button
-              onClick={() => setShowCart(false)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-black"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-xl font-bold mb-4">🛒 Your Cart</h2>
-
-            {cart.length === 0 ? (
-              <p>No items in cart.</p>
-            ) : (
-              <ul className="mb-4">
-                {cart.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex justify-between items-center mb-2"
-                  >
-                    <div>
-                      {item.name} (${item.price}) × {item.quantity}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => updateQuantity(item.id, -1)}
-                        className="px-2 bg-red-500 text-white rounded"
-                      >
-                        -
-                      </button>
-                      <button
-                        onClick={() => updateQuantity(item.id, +1)}
-                        className="px-2 bg-blue-500 text-white rounded"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            {user && (
+              <>
+                <Link
+                  to="/orders"
+                  className={isActive("/orders")}
+                  onClick={handleLinkClick}
+                >
+                  📦 Order History
+                </Link>
+                <Link
+                  to="/profile"
+                  className={isActive("/profile")}
+                  onClick={handleLinkClick}
+                >
+                  👤 Manage Profile
+                </Link>
+              </>
             )}
 
-            <div className="mb-3 font-semibold">
-              Total: ${total.toFixed(2)}
-            </div>
+            <hr className="border-gray-200" />
 
-            <input
-              type="text"
-              placeholder="Enter your name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
-            />
-
-            <button
-              onClick={submitOrder}
-              disabled={cart.length === 0}
-              className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700"
-            >
-              Submit Order
-            </button>
+            {user ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  handleLinkClick();
+                }}
+                className="text-red-600 hover:text-red-800 text-left"
+              >
+                🚪 Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className={isActive("/login")}
+                onClick={handleLinkClick}
+              >
+                🔐 Login
+              </Link>
+            )}
           </div>
+        )}
+      </nav>
+
+      {/* 🗂️ CATEGORY FILTER */}
+      <div className="p-4">
+        <div className="flex flex-wrap gap-2 mb-6">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-2 rounded-full border transition-colors ${
+                activeCategory === cat
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white hover:bg-blue-100"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
-      )}
+
+        {/* 🧾 PRODUCT GRID */}
+        {filteredProducts.length === 0 ? (
+          <p>No products found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((p) => (
+              <div
+                key={p.id}
+      className="border rounded-xl p-4 shadow flex flex-col justify-between hover:shadow-lg transition-shadow bg-white"
+              >
+                <img
+                  src={p.img || "https://via.placeholder.com/200?text=No+Image"}
+                  alt={p.name}
+                  className="w-full h-40 object-cover rounded-lg mb-3"
+                />
+                <h3 className="font-semibold text-lg mb-1">{p.name}</h3>
+                <p className="text-gray-600 mb-2">
+                  ${Number(p.price).toFixed(2)}
+                </p>
+                <button
+                  onClick={() => addToCart(p)}
+                  className="bg-green-600 text-white py-1.5 rounded hover:bg-green-700 transition"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
