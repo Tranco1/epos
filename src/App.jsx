@@ -4,7 +4,8 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
-import Orderhistory from "./pages/Orderhistory";
+import OrderHistory from "./pages/OrderHistory";
+import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 
 function App() {
@@ -16,8 +17,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<About />} />
-        <Route path="/order-history" element={<Orderhistory />} />
+        <Route path="/order-history" element={<OrderHistory />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/order-details/:orderId" element={<OrderDetails />} />
       </Routes>
     </Router>
   );

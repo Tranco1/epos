@@ -7,19 +7,28 @@ function Shop() {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [menuOpen, setMenuOpen] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🧠 Fetch products
+  // ✅ Safely get user from localStorage
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  })();
+
+  // ✅ Fetch products on load
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://192.168.1.107:5000/api/products"); // update your backend IP/URL
+        const res = await fetch("http://192.168.1.107:5000/api/products");
         const data = await res.json();
+
         setProducts(data);
-        const cats = [...new Set(data.map((p) => p.category))];
-        setCategories(["All", ...cats]);
+        const cats = ["All", ...new Set(data.map((p) => p.category))];
+        setCategories(cats);
       } catch (err) {
         console.error("❌ Error fetching products:", err);
       }
@@ -54,6 +63,7 @@ function Shop() {
       ? products
       : products.filter((p) => p.category === activeCategory);
 
+  // ✅ Utility for menu link styles
   const isActive = (path) =>
     location.pathname === path
       ? "text-blue-700 font-semibold underline"
@@ -67,7 +77,7 @@ function Shop() {
       <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
         {/* LEFT: Brand */}
         <Link to="/" className="text-xl font-bold text-blue-600">
-          🛍️  The Golden Dragon
+          🛍️ The Golden Dragon
         </Link>
 
         {/* RIGHT: Cart + User Controls */}
@@ -82,7 +92,7 @@ function Shop() {
           {user ? (
             <>
               <span className="text-gray-700 hidden sm:inline">
-                👋 {user.username}
+                👋 Welcome, {user.username}
               </span>
               <button
                 onClick={handleLogout}
@@ -97,7 +107,7 @@ function Shop() {
             </Link>
           )}
 
-          {/* Hamburger icon (always visible on small screens) */}
+          {/* Hamburger icon */}
           <button
             className="text-gray-700 md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -106,7 +116,7 @@ function Shop() {
           </button>
         </div>
 
-        {/* MOBILE MENU — shows all links only when icon is clicked */}
+        {/* MOBILE MENU */}
         {menuOpen && (
           <div className="absolute top-full left-0 w-full bg-white shadow-lg border-t z-50 flex flex-col p-4 space-y-3">
             <Link to="/" className={isActive("/")} onClick={handleLinkClick}>
@@ -166,31 +176,35 @@ function Shop() {
 
       {/* 🗂️ CATEGORY FILTER */}
       <div className="p-4">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-full border transition-colors ${
-                activeCategory === cat
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white hover:bg-blue-100"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {categories.length > 0 ? (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 rounded-full border transition-colors ${
+                  activeCategory === cat
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white hover:bg-blue-100"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 mb-4">Loading categories...</p>
+        )}
 
         {/* 🧾 PRODUCT GRID */}
         {filteredProducts.length === 0 ? (
-          <p>No products found.</p>
+          <p className="text-gray-500 text-center">No products found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredProducts.map((p) => (
               <div
                 key={p.id}
-      className="border rounded-xl p-4 shadow flex flex-col justify-between hover:shadow-lg transition-shadow bg-white"
+       className="border rounded-xl p-4 shadow flex flex-col justify-between hover:shadow-lg transition-shadow bg-white"
               >
                 <img
                   src={p.img || "https://via.placeholder.com/200?text=No+Image"}

@@ -127,7 +127,7 @@ app.get("/api/products", async (req, res) => {
 
 // 🟢 Submit an order
 app.post("/api/orders", async (req, res) => {
-  console.log("📦 /api/orders endpoint hit! Request body:", req.body);
+//  console.log("📦 /api/orders endpoint hit! Request body:", req.body);
   const { customer_name,items ,user_id} = req.body;
   if (!customer_name || !items || items.length === 0) {
     return res.status(400).json({ error: "Missing customer name or cart" });
@@ -181,6 +181,43 @@ app.post("/api/orders", async (req, res) => {
     client.release();
   }
 });
+
+// Get all orders by customer email
+app.get("/api/orders/:user_id", async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT o.order_id, o.order_date, o.total, o.customer_name
+       FROM orders o
+       WHERE o.user_id = $1 and o.dealer_id =$2
+       ORDER BY o.order_date DESC`,
+      [user_id, fixed_dealer_id || null ]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+app.get("/api/orders/:order_id/items", async (req, res) => {
+  const { order_id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT oi.product_id, p.name, oi.quantity, oi.price, p.img
+       FROM orders_items oi
+       JOIN products p ON oi.product_id = p.id
+       WHERE oi.order_id = $1`,
+      [order_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching order items:", err);
+    res.status(500).json({ error: "Failed to fetch order items" });
+  }
+});
+
 
 app.listen(5000, "0.0.0.0", () =>
   console.log("✅ API running on http://0.0.0.0:5000")
