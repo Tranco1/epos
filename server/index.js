@@ -94,7 +94,7 @@ app.post("/api/register", async (req, res) => {
 
     // Insert user
     const result = await pool.query(
-      "INSERT INTO users (name, email, dealer_id, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
+    "INSERT INTO users (name, email, dealer_id, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
       [username, email, fixed_dealer_id || null, hashed]
     );
 
@@ -113,7 +113,7 @@ app.post("/api/register", async (req, res) => {
 app.get("/api/products", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.id, p.name, p.price, p.dealer_id, p.img, c.cname AS category
+      SELECT p.id, p.name, p.price, p.img, c.cname AS category
       FROM products p
       JOIN category c ON c.id = p.category
       WHERE p.dealer_id = 1
@@ -127,8 +127,9 @@ app.get("/api/products", async (req, res) => {
 
 // 🟢 Submit an order
 app.post("/api/orders", async (req, res) => {
-  const { customer_name, cart } = req.body;
-  if (!customer_name || !cart || cart.length === 0) {
+  console.log("📦 /api/orders endpoint hit! Request body:", req.body);
+  const { customer_name,items ,user_id} = req.body;
+  if (!customer_name || !items || items.length === 0) {
     return res.status(400).json({ error: "Missing customer name or cart" });
   }
 
@@ -136,23 +137,39 @@ app.post("/api/orders", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    const total = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+    const total = items.reduce(
+      (sum, items) => sum + Number(items.price) * items.qty,
       0
     );
 
     const orderResult = await client.query(
-      "INSERT INTO orders (customer_name, total) VALUES ($1, $2) RETURNING id",
-      [customer_name, total]
+      "INSERT INTO orders (user_id, customer_name, total, dealer_id) VALUES ($1, $2, $3, $4) RETURNING order_id",
+      [user_id, customer_name, total, fixed_dealer_id || null]
     );
 
-    const orderId = orderResult.rows[0].id;
+    const orderId = orderResult.rows[0].order_id;
 
-    for (const item of cart) {
-      await client.query(
-        "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)",
-        [orderId, item.id, item.quantity, item.price]
-      );
+  //  for (const item of items) {
+  //    await client.query(
+  //      "INSERT INTO orders_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)",
+  //      [orderId, item.id, item.qty, item.price]
+  //    );
+  //  }
+
+   // Insert each product into order_items
+    const insertItemQuery = `
+      INSERT INTO orders_items (order_id, product_id, quantity, price)
+      VALUES ($1, $2, $3, $4)
+    `;
+
+    for (const item of items) {
+     console.log("🛒 inserting item:", item); // helpful debugging line
+      await client.query(insertItemQuery, [
+        orderId,
+        item.id,
+        item.qty,
+        Number(item.price)
+      ]);
     }
 
     await client.query("COMMIT");

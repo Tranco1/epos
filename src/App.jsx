@@ -4,7 +4,7 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import About from "./pages/About";
-import Orders from "./pages/Orders";
+import Orderhistory from "./pages/Orderhistory";
 import Profile from "./pages/Profile";
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<About />} />
-        <Route path="/orders" element={<Orders />} />
+        <Route path="/order-history" element={<Orderhistory />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>

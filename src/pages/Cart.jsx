@@ -29,9 +29,9 @@ function Cart() {
     const order = {
       customer_name: customerName,
       items: cart,
-      user_id: user?.id || null,
+      user_id: user?.id || null
     };
-
+console.log("🧺 Submitting cart:", cart);
     try {
       const res = await fetch("http://192.168.1.107:5000/api/orders", {
         method: "POST",

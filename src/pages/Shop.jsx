@@ -67,7 +67,7 @@ function Shop() {
       <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
         {/* LEFT: Brand */}
         <Link to="/" className="text-xl font-bold text-blue-600">
-          🛍️ My Shop
+          🛍️  The Golden Dragon
         </Link>
 
         {/* RIGHT: Cart + User Controls */}
@@ -123,8 +123,8 @@ function Shop() {
             {user && (
               <>
                 <Link
-                  to="/orders"
-                  className={isActive("/orders")}
+                  to="/order-history"
+                  className={isActive("/order-history")}
                   onClick={handleLinkClick}
                 >
                   📦 Order History
