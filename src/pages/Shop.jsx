@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import "purecss/build/pure-min.css";
 
 function Shop() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shopName, setShopName] = useState("🛍️ The Golden Draon");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,11 +21,36 @@ function Shop() {
     }
   })();
 
+  // Fetch dealer info (shop name)
+  useEffect(() => {
+    const fetchDealer = async () => {
+console.log("userid",user.dealer_id);
+      try {
+        if (user?.dealer_id) {
+          const res = await fetch(
+            `http://192.168.1.122:5000/api/dealers/${user.dealer_id}`
+          );
+console.log(" jsx ");
+          const data = await res.json();
+          if (data?.tname) {
+            setShopName(`🛍️ ${data.tname}`);
+       console.log("shop name",setShopName);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching dealer:", err);
+      }
+    };
+
+    fetchDealer();
+  }, [user?.dealer_id]);
+
+
   // ✅ Fetch products on load
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://192.168.1.107:5000/api/products");
+        const res = await fetch("http://192.168.1.122:5000/api/products");
         const data = await res.json();
 
         setProducts(data);
@@ -74,105 +101,109 @@ function Shop() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 🌟 NAVIGATION BAR */}
-      <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
-        {/* LEFT: Brand */}
-        <Link to="/" className="text-xl font-bold text-blue-600">
-          🛍️ The Golden Dragon
-        </Link>
+<nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
+  {/* LEFT: Brand */}
 
-        {/* RIGHT: Cart + User Controls */}
-        <div className="flex items-center space-x-4">
+<Link to="/" className="text-xl font-bold text-blue-600">
+  {shopName}
+</Link>
+
+
+  {/* RIGHT: Cart + User Controls + Hamburger */}
+  <div className="flex items-center space-x-4 ml-auto">
+    {/* Cart link */}
+    <Link
+      to="/cart"
+      className="text-green-600 hover:text-green-800 font-medium"
+    >
+      🛒 Cart
+    </Link>
+
+    {/* Optional user greeting + logout (hide on mobile) */}
+    {user ? (
+      <>
+        <span className="text-gray-700 hidden sm:inline">
+          👋 Welcome, {user.username}
+        </span>
+        <button
+          onClick={handleLogout}
+          className="text-red-600 hover:text-red-800 font-medium hidden sm:inline"
+        >
+          Logout
+        </button>
+      </>
+    ) : (
+      <Link to="/login" className={isActive("/login")}>
+        🔐 Login
+      </Link>
+    )}
+
+    {/* Hamburger icon (only visible on mobile) */}
+    <button
+      className="text-gray-700 md:hidden"
+      onClick={() => setMenuOpen(!menuOpen)}
+    >
+      {menuOpen ? <X size={26} /> : <Menu size={26} />}
+    </button>
+  </div>
+</nav>
+
+  {/* MOBILE MENU (unchanged) */}
+  {menuOpen && (
+    <div className="absolute top-full left-0 w-full bg-white shadow-lg border-t z-50 flex flex-col p-4 space-y-3">
+      <Link to="/" className={isActive("/")} onClick={() => setMenuOpen(false)}>
+        🏠 Shop
+      </Link>
+      <Link
+        to="/about"
+        className={isActive("/about")}
+        onClick={() => setMenuOpen(false)}
+      >
+        ℹ️ About
+      </Link>
+
+      {user && (
+        <>
           <Link
-            to="/cart"
-            className="text-green-600 hover:text-green-800 font-medium"
+            to="/order-history"
+            className={isActive("/order-history")}
+            onClick={() => setMenuOpen(false)}
           >
-            🛒 Cart
+            📦 Order History
           </Link>
-
-          {user ? (
-            <>
-              <span className="text-gray-700 hidden sm:inline">
-                👋 Welcome, {user.username}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="text-red-600 hover:text-red-800 font-medium hidden sm:inline"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className={isActive("/login")}>
-              🔐 Login
-            </Link>
-          )}
-
-          {/* Hamburger icon */}
-          <button
-            className="text-gray-700 md:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
+          <Link
+            to="/profile"
+            className={isActive("/profile")}
+            onClick={() => setMenuOpen(false)}
           >
-            {menuOpen ? <X size={26} /> : <Menu size={26} />}
-          </button>
-        </div>
+            👤 Manage Profile
+          </Link>
+        </>
+      )}
 
-        {/* MOBILE MENU */}
-        {menuOpen && (
-          <div className="absolute top-full left-0 w-full bg-white shadow-lg border-t z-50 flex flex-col p-4 space-y-3">
-            <Link to="/" className={isActive("/")} onClick={handleLinkClick}>
-              🏠 Shop
-            </Link>
-            <Link
-              to="/about"
-              className={isActive("/about")}
-              onClick={handleLinkClick}
-            >
-              ℹ️ About
-            </Link>
+      <hr className="border-gray-200" />
 
-            {user && (
-              <>
-                <Link
-                  to="/order-history"
-                  className={isActive("/order-history")}
-                  onClick={handleLinkClick}
-                >
-                  📦 Order History
-                </Link>
-                <Link
-                  to="/profile"
-                  className={isActive("/profile")}
-                  onClick={handleLinkClick}
-                >
-                  👤 Manage Profile
-                </Link>
-              </>
-            )}
-
-            <hr className="border-gray-200" />
-
-            {user ? (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  handleLinkClick();
-                }}
-                className="text-red-600 hover:text-red-800 text-left"
-              >
-                🚪 Logout
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                className={isActive("/login")}
-                onClick={handleLinkClick}
-              >
-                🔐 Login
-              </Link>
-            )}
-          </div>
-        )}
-      </nav>
+      {user ? (
+        <button
+          onClick={() => {
+            handleLogout();
+            setMenuOpen(false);
+          }}
+          className="text-red-600 hover:text-red-800 text-left"
+        >
+          🚪 Logout
+        </button>
+      ) : (
+        <Link
+          to="/login"
+          className={isActive("/login")}
+          onClick={() => setMenuOpen(false)}
+        >
+          🔐 Login
+        </Link>
+      )}
+    </div>
+  )}
 
       {/* 🗂️ CATEGORY FILTER */}
       <div className="p-4">
@@ -209,7 +240,11 @@ function Shop() {
                 <img
                   src={p.img || "https://via.placeholder.com/200?text=No+Image"}
                   alt={p.name}
-                  className="w-full h-40 object-cover rounded-lg mb-3"
+                  style={{
+                    width: "200px",    // fixed width
+                    height: "150px",   // fixed height
+                    objectFit: "cover" // crop/scale to fit nicely
+                 }}
                 />
                 <h3 className="font-semibold text-lg mb-1">{p.name}</h3>
                 <p className="text-gray-600 mb-2">

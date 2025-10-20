@@ -19,7 +19,7 @@ const pool = new Pool({
 
 // ⚙️ Secret key for JWT (store in .env in production)
 const JWT_SECRET = "mysecretkey";
-const fixed_dealer_id = 1;
+const fixed_dealer_id = 2;
 
 // 🔐 Login route
 app.post("/api/login", async (req, res) => {
@@ -81,7 +81,7 @@ app.get("/api/dealers/:id", async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Dealer not found" });
     }
-
+    //console.log(" test ", result.rows[0].tname );
     res.json(result.rows[0]);
   } catch (err) {
     console.error("Error fetching dealer:", err);
@@ -165,9 +165,9 @@ app.get("/api/products", async (req, res) => {
       SELECT p.id, p.name, p.price, p.img, c.cname AS category
       FROM products p
       JOIN category c ON c.id = p.category
-      WHERE p.dealer_id = 1
+      WHERE p.dealer_id = $1
       ORDER BY c.sortcode, p.name
-    `);
+    `, [fixed_dealer_id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
