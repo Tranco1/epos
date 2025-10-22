@@ -70,12 +70,12 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.get("/api/dealers/:id", async (req, res) => {
+app.get("/api/dealer", async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
       "SELECT id, tname FROM dealers WHERE id = $1",
-      [id]
+      [fixed_dealer_id]
     );
 
     if (result.rows.length === 0) {
@@ -165,9 +165,9 @@ app.get("/api/products", async (req, res) => {
       SELECT p.id, p.name, p.price, p.img, c.cname AS category
       FROM products p
       JOIN category c ON c.id = p.category
-      WHERE p.dealer_id = 1
+      WHERE p.dealer_id = $1
       ORDER BY c.sortcode, p.name
-    `);
+    `,[fixed_dealer_id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -24,19 +24,17 @@ function Shop() {
   // Fetch dealer info (shop name)
   useEffect(() => {
     const fetchDealer = async () => {
-console.log("userid",user.dealer_id);
       try {
-        if (user?.dealer_id) {
           const res = await fetch(
-            `http://192.168.1.107:5000/api/dealers/${user.dealer_id}`
+            `http://192.168.1.107:5000/api/dealer`
           );
-console.log(" jsx ");
+
           const data = await res.json();
           if (data?.tname) {
             setShopName(`🛍️ ${data.tname}`);
        console.log("shop name",setShopName);
           }
-        }
+        
       } catch (err) {
         console.error("Error fetching dealer:", err);
       }

@@ -70,12 +70,12 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.get("/api/dealers/:id", async (req, res) => {
-  const { id } = req.params;
+app.get("/api/dealer", async (req, res) => {
+//  const { id } = req.params;
   try {
     const result = await pool.query(
       "SELECT id, tname FROM dealers WHERE id = $1",
-      [id]
+      [fixed_dealer_id]
     );
 
     if (result.rows.length === 0) {
