@@ -1,90 +1,142 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "purecss/build/pure-min.css";
 
-const OrderHistory = () => {
+function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Get user once from localStorage
   const user = (() => {
     try {
-      return JSON.parse(localStorage.getItem("user"));
+      return JSON.parse(localStorage.getItem("user") || "null");
     } catch {
       return null;
     }
   })();
 
+  // ✅ Fetch user's orders
   useEffect(() => {
-    // Don't fetch if no user is logged in
-    if (!user || !user.id) {
-      setLoading(false);
-      return;
-    }
-
     const fetchOrders = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        console.log("Fetching orders for user:", user.id);
-        const response = await fetch(`http://192.168.1.107:5000/api/orders/${user.id}`);
-        const data = await response.json();
+        const res = await fetch(
+          `http://192.168.1.107:5000/api/orders?id=${user.id}`
+        );
+        const data = await res.json();
         setOrders(data);
-      } catch (error) {
-        console.error("❌ Error fetching order history:", error);
+      } catch (err) {
+        console.error("❌ Error fetching orders:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrders();
-    // 🔹 DO NOT put 'user' in dependency array because it's not stable
-  }, []); // <-- empty dependency array ensures it only runs once
+  }, [user?.id]);
 
-  // Render
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">
-        Please log in to view your order history.
-      </div>
-    );
-  }
+  // 🧭 Navigate to order details
+  const viewDetails = (orderId) => {
+    navigate(`/order-details/${orderId}`);
+  };
 
   if (loading) {
+    return <p style={{ textAlign: "center", color: "#555" }}>Loading...</p>;
+  }
+
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">
-        Loading your orders...
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+        <h2>Please log in to view your order history</h2>
+        <Link to="/login" className="pure-button pure-button-primary">
+          Go to Login
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-2xl font-bold mb-6">Order History</h1>
+    <div className="pure-g" style={{ padding: "2rem", justifyContent: "center" }}>
+      <div className="pure-u-1 pure-u-md-3-4 pure-u-lg-2-3">
+        <h1
+          style={{
+            textAlign: "center",
+            color: "#1f8dd6",
+            marginBottom: "1.5rem",
+          }}
+        >
+          📦 Order History
+        </h1>
 
-      {orders.length === 0 ? (
-        <p className="text-gray-600">No orders found.</p>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white p-4 rounded-xl shadow hover:bg-gray-100 cursor-pointer"
-              onClick={() => navigate(`/order-details/${order.order_id}`)}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">Order #{order.order_id}</p>
-                  <p className="text-gray-500">
-                    {new Date(order.order_date).toLocaleString()}
-                  </p>
-                </div>
-                <p className="text-blue-600 font-medium">View Details →</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        {orders.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#555" }}>
+            You have no past orders.
+          </p>
+        ) : (
+          <table
+            className="pure-table pure-table-horizontal"
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+              overflow: "hidden",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: "#f7f7f7" }}>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Total ($)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr
+                  key={order.id}
+                  style={{
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "#f9f9f9")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "white")
+                  }
+                >
+                  <td>{order.id}</td>
+                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{Number(order.total).toFixed(2)}</td>
+                  <td>{order.status || "Completed"}</td>
+                  <td>
+                    <button
+                      className="pure-button pure-button-primary"
+                      style={{
+                        backgroundColor: "#1f8dd6",
+                        color: "#fff",
+                        borderRadius: "6px",
+                        padding: "0.3rem 0.8rem",
+                      }}
+                      onClick={() => viewDetails(order.id)}
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
-};
+}
 
 export default OrderHistory;

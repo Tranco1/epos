@@ -28,7 +28,7 @@ console.log("userid",user.dealer_id);
       try {
         if (user?.dealer_id) {
           const res = await fetch(
-            `http://192.168.1.122:5000/api/dealers/${user.dealer_id}`
+            `http://192.168.1.107:5000/api/dealers/${user.dealer_id}`
           );
 console.log(" jsx ");
           const data = await res.json();
@@ -50,7 +50,7 @@ console.log(" jsx ");
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://192.168.1.122:5000/api/products");
+        const res = await fetch("http://192.168.1.107:5000/api/products");
         const data = await res.json();
 
         setProducts(data);
@@ -101,7 +101,7 @@ console.log(" jsx ");
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 🌟 NAVIGATION BAR */}
-<nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
+<nav className="w-full bg-white shadow-md px-6 py-3 flex justify-between items-center relative">
   {/* LEFT: Brand */}
 
 <Link to="/" className="text-xl font-bold text-blue-600">
@@ -227,39 +227,87 @@ console.log(" jsx ");
           <p className="text-gray-500 mb-4">Loading categories...</p>
         )}
 
-        {/* 🧾 PRODUCT GRID */}
-        {filteredProducts.length === 0 ? (
-          <p className="text-gray-500 text-center">No products found.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredProducts.map((p) => (
-              <div
-                key={p.id}
-       className="border rounded-xl p-4 shadow flex flex-col justify-between hover:shadow-lg transition-shadow bg-white"
-              >
-                <img
-                  src={p.img || "https://via.placeholder.com/200?text=No+Image"}
-                  alt={p.name}
-                  style={{
-                    width: "200px",    // fixed width
-                    height: "150px",   // fixed height
-                    objectFit: "cover" // crop/scale to fit nicely
-                 }}
-                />
-                <h3 className="font-semibold text-lg mb-1">{p.name}</h3>
-                <p className="text-gray-600 mb-2">
-                  ${Number(p.price).toFixed(2)}
-                </p>
-                <button
-                  onClick={() => addToCart(p)}
-                  className="bg-green-600 text-white py-1.5 rounded hover:bg-green-700 transition"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+{/* 🧾 PRODUCT GRID */}
+{filteredProducts.length === 0 ? (
+  <p style={{ textAlign: "center", color: "#666" }}>No products found.</p>
+) : (
+  <div
+    className="pure-g"
+    style={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "1rem",
+      padding: "1rem",
+    }}
+  >
+    {filteredProducts.map((p) => (
+      <div
+        key={p.id}
+        className="pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4"
+        style={{
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          padding: "1rem",
+          backgroundColor: "#fff",
+          textAlign: "center",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          transition: "transform 0.2s, box-shadow 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-3px)";
+          e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+        }}
+      >
+        <img
+          src={p.img || "https://via.placeholder.com/200?text=No+Image"}
+          alt={p.name}
+          style={{
+            width: "100%",
+            height: "150px",
+            objectFit: "scale-down",
+            borderRadius: "4px",
+            marginBottom: "10px",
+          }}
+        />
+
+        <h3
+          style={{
+            fontWeight: "600",
+            fontSize: "1.1rem",
+            marginBottom: "0.25rem",
+          }}
+        >
+          {p.name}
+        </h3>
+
+        <p style={{ color: "#555", marginBottom: "0.75rem" }}>
+          ${Number(p.price).toFixed(2)}
+        </p>
+
+        <button
+          className="pure-button pure-button-primary"
+          style={{
+            backgroundColor: "#1f8dd6",
+            color: "white",
+            borderRadius: "6px",
+            padding: "0.4rem 1rem",
+            fontWeight: "bold",
+            cursor: "pointer",
+          }}
+          onClick={() => addToCart(p)}
+        >
+          Add to Cart
+        </button>
+      </div>
+    ))}
+  </div>
+)}
+
       </div>
     </div>
   );
