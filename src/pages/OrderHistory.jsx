@@ -25,7 +25,7 @@ function OrderHistory() {
 
       try {
         const res = await fetch(
-          `http://192.168.1.107:5000/api/orders?id=${user.id}`
+          `http://192.168.1.107:5000/api/orders/${user.id}`
         );
         const data = await res.json();
         setOrders(data);
@@ -91,6 +91,7 @@ function OrderHistory() {
             <thead>
               <tr style={{ backgroundColor: "#f7f7f7" }}>
                 <th>ID</th>
+                <th>Reference</th>
                 <th>Date</th>
                 <th>Total ($)</th>
                 <th>Status</th>
@@ -100,10 +101,10 @@ function OrderHistory() {
             <tbody>
               {orders.map((order) => (
                 <tr
-                  key={order.id}
+                  key={order.order_id}
                   style={{
                     transition: "background 0.2s",
-                  }}
+	            color: "#555",  }}                  
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.background = "#f9f9f9")
                   }
@@ -111,8 +112,9 @@ function OrderHistory() {
                     (e.currentTarget.style.background = "white")
                   }
                 >
-                  <td>{order.id}</td>
-                  <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{order.order_id}</td>
+                  <td>{order.customer_name}</td>
+                  <td>{new Date(order.order_date).toLocaleDateString()}</td>
                   <td>{Number(order.total).toFixed(2)}</td>
                   <td>{order.status || "Completed"}</td>
                   <td>
@@ -124,7 +126,7 @@ function OrderHistory() {
                         borderRadius: "6px",
                         padding: "0.3rem 0.8rem",
                       }}
-                      onClick={() => viewDetails(order.id)}
+                      onClick={() => viewDetails(order.order_id)}
                     >
                       View Details
                     </button>

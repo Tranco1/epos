@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "purecss/build/pure-min.css";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -36,16 +37,17 @@ const OrderDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <button
-        className="text-blue-600 underline mb-4"
-        onClick={() => navigate("/order-history")}
-      >
-        ← Back to Orders
-      </button>
 
-      <h1 className="text-2xl font-bold mb-4">Order #{orderId}</h1>
-
+    <div className="pure-g" style={{ padding: "2rem", justifyContent: "center" }}>
+      <div className="pure-u-1 pure-u-md-3-4 pure-u-lg-2-3">
+        <h1
+          style={{
+            textAlign: "center",
+            color: "#1f8dd6",
+            marginBottom: "1.5rem",
+          }}
+        >Order #{orderId}</h1>
+</div>
       {loading && <p>Loading...</p>}
 
       {!loading && items.length === 0 && <p>No items found for this order.</p>}
@@ -55,12 +57,40 @@ const OrderDetails = () => {
           {items.map((item) => (
             <div
               key={item.product_id}
-              className="flex items-center bg-white p-3 rounded-xl shadow"
+                      className="pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4"
+        style={{
+          color: "#555",
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          padding: "1rem",
+          backgroundColor: "#fff",
+          textAlign: "center",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          transition: "transform 0.2s, box-shadow 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-3px)";
+          e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+        }}
             >
               <img
-                src={item.img || "https://via.placeholder.com/64"}
+//                src={item.img || "https://via.placeholder.com/64"}
+                  src={item.img.startsWith("http")
+                  ? item.img
+                  : `http://192.168.1.107:5173${item.img}`
+                  }
                 alt={item.name}
-                className="w-16 h-16 object-cover rounded-lg mr-4"
+                style={{
+                width: "100%",
+                height: "40px",
+                objectFit: "scale-down",
+                borderRadius: "4px",
+                marginBottom: "10px",
+                }}
               />
               <div className="flex-1">
                 <p className="font-medium">{item.name}</p>
@@ -75,8 +105,14 @@ const OrderDetails = () => {
 
       {items.length > 0 && (
         <button
+      className="pure-button pure-button-primary"
+      style={{
+        backgroundColor: "#1f8dd6",
+        color: "#fff",
+        borderRadius: "6px",
+        padding: "0.3rem 0.8rem",
+      }}
           onClick={reorder}
-          className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700"
         >
           Reorder These Items
         </button>
