@@ -6,6 +6,9 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [dealerId, setDealerId] = useState("");
+  const [address, setAddress] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -21,6 +24,9 @@ function Register() {
           username,
           email,
           password,
+          address,
+          postcode,
+          phone,
           dealer_id: dealerId || null,
         }),
       });
@@ -77,6 +83,34 @@ function Register() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         /><br></br>
+
+
+        <label className="block mb-2 font-medium">Address</label>
+        <input
+          type="address"
+          className="border w-full p-2 rounded mb-3"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        /><br></br>
+
+
+        <label className="block mb-2 font-medium">Postcode</label>
+        <input
+          type="postcode"
+          className="border w-full p-2 rounded mb-3"
+          value={postcode}
+          onChange={(e) => setPostcode(e.target.value)}
+        /><br></br>
+
+
+        <label className="block mb-2 font-medium">Phone</label>
+        <input
+          type="phone"
+          className="border w-full p-2 rounded mb-3"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        /><br></br>
+
 
         <button
           type="submit"

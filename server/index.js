@@ -92,7 +92,7 @@ app.get("/api/dealer", async (req, res) => {
 
 // 📝 Register new user
 app.post("/api/register", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, address, postcode, phone } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Missing fields" });
@@ -114,8 +114,8 @@ app.post("/api/register", async (req, res) => {
 
     // Insert user
     const result = await pool.query(
-    "INSERT INTO users (name, email, dealer_id, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, dealer_id",
-      [username, email, fixed_dealer_id || null, hashed]
+    "INSERT INTO users (name, email, dealer_id, password, address, postcode, phone) VALUES ($1, $2, $3, $4, $5, $6, $7 ) RETURNING id, name, email, dealer_id",
+    [username, email, fixed_dealer_id || null, hashed, address, postcode, phone]
     );
 
     res.json({
