@@ -278,6 +278,7 @@ function Shop() {
             fontWeight: "600",
             fontSize: "1.1rem",
             marginBottom: "0.25rem",
+            color: "#555",
           }}
         >
           {p.name}
